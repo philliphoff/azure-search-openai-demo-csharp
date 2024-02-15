@@ -18,7 +18,7 @@ if [ -z "$AZD_PREPDOCS_RAN" ] || [ "$AZD_PREPDOCS_RAN" = "false" ]; then
 
     pwd
 
-    args = "--project "app/prepdocs/PrepareDocs/PrepareDocs.csproj" -- \
+    args="--project "app/prepdocs/PrepareDocs/PrepareDocs.csproj" -- \
       './data/*.pdf' \
       --storageendpoint "$AZURE_STORAGE_BLOB_ENDPOINT" \
       --container "$AZURE_STORAGE_CONTAINER" \
@@ -32,7 +32,7 @@ if [ -z "$AZD_PREPDOCS_RAN" ] || [ "$AZD_PREPDOCS_RAN" = "false" ]; then
 
     # if USE_GPT4V and AZURE_COMPUTERVISION_SERVICE_ENDPOINT is set, add --computervisionendpoint "$AZURE_COMPUTERVISION_SERVICE_ENDPOINT" to the command above
     if [ "$USE_GPT4V" = "true" ] && [ -n "$AZURE_COMPUTERVISION_SERVICE_ENDPOINT" ]; then
-        args = "$args --computervisionendpoint $AZURE_COMPUTERVISION_SERVICE_ENDPOINT"
+        args="$args --computervisionendpoint $AZURE_COMPUTERVISION_SERVICE_ENDPOINT"
     fi
 
     echo "Running: dotnet run $args"

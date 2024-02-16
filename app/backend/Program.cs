@@ -1,6 +1,8 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
+using Dapr.Workflow;
 using Microsoft.AspNetCore.Antiforgery;
+using MinimalApi.Workflows;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -19,6 +21,14 @@ builder.Services.AddAzureServices();
 builder.Services.AddAntiforgery(options => { options.HeaderName = "X-CSRF-TOKEN-HEADER"; options.FormFieldName = "X-CSRF-TOKEN-FORM"; });
 builder.Services.AddHttpClient();
 builder.Services.AddDaprClient();
+builder.Services.AddDaprWorkflowClient();
+builder.Services.AddDaprWorkflow(
+    options =>
+    {
+        options.RegisterWorkflow<ProcessDocumentsWorkflow>();
+
+        options.RegisterActivity<NotifyActivity>();
+    });
 
 if (builder.Environment.IsDevelopment())
 {

@@ -1,8 +1,11 @@
 ﻿// Copyright (c) Microsoft. All rights reserved.
 
+using Dapr.Workflow;
+using MinimalApi.Workflows;
+
 namespace MinimalApi.Services;
 
-internal sealed class AzureBlobStorageService(BlobContainerClient container)
+internal sealed class AzureBlobStorageService(BlobContainerClient container, DaprWorkflowClient workflowClient)
 {
     internal static DefaultAzureCredential DefaultCredential { get; } = new();
 
@@ -48,6 +51,14 @@ internal sealed class AzureBlobStorageService(BlobContainerClient container)
                         File.Delete(tempFileName);
                     }
                 }
+            }
+
+            if (uploadedFiles.Count > 0)
+            {
+                await workflowClient.ScheduleNewWorkflowAsync(
+                    nameof(ProcessDocumentsWorkflow),
+                    Guid.NewGuid().ToString("N"),
+                    new ProcessDocumentsRequest(container.Uri.ToString()));
             }
 
             if (uploadedFiles.Count is 0)

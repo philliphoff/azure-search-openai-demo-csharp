@@ -20,7 +20,20 @@ internal sealed class AzureBlobStorageService(BlobContainerClient container, Dap
 
                 await using var stream = file.OpenReadStream();
 
-                using var documents = PdfReader.Open(stream, PdfDocumentOpenMode.Import);
+                var byteBuffer = new byte[stream.Length];
+                using var buffer = new MemoryStream(byteBuffer);
+
+                await stream.CopyToAsync(buffer, cancellationToken);
+
+                var request = new ProcessDocumentsRequest(fileName, byteBuffer);
+
+                await workflowClient.ScheduleNewWorkflowAsync(
+                    nameof(ProcessDocumentsWorkflow),
+                    Guid.NewGuid().ToString("N"),
+                    request);
+
+                using var bufferedStream = new MemoryStream(byteBuffer);
+                using var documents = PdfReader.Open(bufferedStream, PdfDocumentOpenMode.Import);
                 for (int i = 0; i < documents.PageCount; i++)
                 {
                     var documentName = BlobNameFromFilePage(fileName, i);
@@ -51,14 +64,6 @@ internal sealed class AzureBlobStorageService(BlobContainerClient container, Dap
                         File.Delete(tempFileName);
                     }
                 }
-            }
-
-            if (uploadedFiles.Count > 0)
-            {
-                await workflowClient.ScheduleNewWorkflowAsync(
-                    nameof(ProcessDocumentsWorkflow),
-                    Guid.NewGuid().ToString("N"),
-                    new ProcessDocumentsRequest(container.Uri.ToString()));
             }
 
             if (uploadedFiles.Count is 0)

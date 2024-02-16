@@ -28,6 +28,7 @@ builder.Services.AddDaprWorkflow(
         options.RegisterWorkflow<ProcessDocumentsWorkflow>();
 
         options.RegisterActivity<NotifyActivity>();
+        options.RegisterActivity<PaginateDocumentActivity>();
     });
 
 if (builder.Environment.IsDevelopment())

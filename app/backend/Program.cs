@@ -29,6 +29,7 @@ builder.Services.AddDaprWorkflow(
 
         options.RegisterActivity<NotifyActivity>();
         options.RegisterActivity<PaginateDocumentActivity>();
+        options.RegisterActivity<UploadFileActivity>();
     });
 
 if (builder.Environment.IsDevelopment())

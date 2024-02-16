@@ -12,10 +12,15 @@ internal sealed class ProcessDocumentsWorkflow : Workflow<ProcessDocumentsReques
 
         var response = await context.CallActivityAsync<PaginateDocumentResponse>(nameof(PaginateDocumentActivity), input);
 
-        foreach (var page in response.Pages)
-        {
-            await context.CallActivityAsync(nameof(NotifyActivity), $"Processed {page.PageName}.");
-        }
+        var uploadActivities =
+            response
+                .Pages
+                .Select(page => context.CallActivityAsync<UploadFileResponse>(
+                    nameof(UploadFileActivity),
+                    new UploadFileRequest(page.PageName, page.Page)))
+                .ToArray();
+
+        await Task.WhenAll(uploadActivities);
 
         await context.CallActivityAsync(nameof(NotifyActivity), "Processing complete.");
 

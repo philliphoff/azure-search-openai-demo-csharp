@@ -31,6 +31,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\frontend\ClientApp.csproj" />
+    <ProjectReference Include="..\servicedefaults\servicedefaults.csproj" />
     <ProjectReference Include="..\shared\Shared\Shared.csproj" />
   </ItemGroup>
 

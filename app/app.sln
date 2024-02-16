@@ -31,6 +31,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MinimalApi.Tests", "tests\M
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "aspire", "aspire\aspire.csproj", "{56A2CB22-1266-4D72-9A34-8B8D396B8554}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "servicedefaults", "servicedefaults\servicedefaults.csproj", "{DA684FD8-585E-401D-85E9-BD40D5E8D98E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -69,6 +71,10 @@ Global
 		{56A2CB22-1266-4D72-9A34-8B8D396B8554}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{56A2CB22-1266-4D72-9A34-8B8D396B8554}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{56A2CB22-1266-4D72-9A34-8B8D396B8554}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DA684FD8-585E-401D-85E9-BD40D5E8D98E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DA684FD8-585E-401D-85E9-BD40D5E8D98E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DA684FD8-585E-401D-85E9-BD40D5E8D98E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DA684FD8-585E-401D-85E9-BD40D5E8D98E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

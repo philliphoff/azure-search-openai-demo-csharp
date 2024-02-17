@@ -13,19 +13,19 @@ internal sealed class AzureBlobStorageService(DaprWorkflowClient workflowClient)
     {
         try
         {
-            List<string> uploadedFiles = [];
+            List<string> workflowIds = [];
+
             foreach (var file in files)
             {
-                var fileName = file.FileName;
-
                 await using var stream = file.OpenReadStream();
 
                 var byteBuffer = new byte[stream.Length];
-                using var buffer = new MemoryStream(byteBuffer);
+
+                await using var buffer = new MemoryStream(byteBuffer);
 
                 await stream.CopyToAsync(buffer, cancellationToken);
 
-                var request = new ProcessDocumentsRequest(fileName, byteBuffer);
+                var request = new ProcessDocumentsRequest(file.FileName, byteBuffer);
 
                 var instanceId = Guid.NewGuid().ToString("N");
 
@@ -34,16 +34,22 @@ internal sealed class AzureBlobStorageService(DaprWorkflowClient workflowClient)
                     instanceId,
                     request);
 
-                var state = await workflowClient.WaitForWorkflowCompletionAsync(
-                    instanceId,
-                    // TODO: Can we get *only* the output (and not input)?
-                    true,
-                    cancellationToken);
-
-                uploadedFiles.AddRange(state.ReadOutputAs<ProcessDocumentsResponse>()?.PageNames ?? Array.Empty<string>());
+                workflowIds.Add(instanceId);
             }
 
-            if (uploadedFiles.Count is 0)
+            var waitTasks =
+                workflowIds
+                    .Select(id => workflowClient.WaitForWorkflowCompletionAsync(id, /* TODO: Can we get *only* the output and not the input? */ true, cancellationToken))
+                    .ToArray();
+
+            var states = await Task.WhenAll(waitTasks);
+
+            var uploadedFiles =
+                states
+                    .SelectMany(state => state.ReadOutputAs<ProcessDocumentsResponse>()?.PageNames ?? Array.Empty<string>())
+                    .ToArray();
+
+            if (uploadedFiles.Length is 0)
             {
                 return UploadDocumentsResponse.FromError("""
                     No files were uploaded. Either the files already exist or the files are not PDFs.

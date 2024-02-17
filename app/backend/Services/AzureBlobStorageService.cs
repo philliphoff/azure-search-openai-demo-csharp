@@ -5,7 +5,7 @@ using MinimalApi.Workflows;
 
 namespace MinimalApi.Services;
 
-internal sealed class AzureBlobStorageService(BlobContainerClient container, DaprWorkflowClient workflowClient)
+internal sealed class AzureBlobStorageService(DaprWorkflowClient workflowClient)
 {
     internal static DefaultAzureCredential DefaultCredential { get; } = new();
 
@@ -27,43 +27,20 @@ internal sealed class AzureBlobStorageService(BlobContainerClient container, Dap
 
                 var request = new ProcessDocumentsRequest(fileName, byteBuffer);
 
+                var instanceId = Guid.NewGuid().ToString("N");
+
                 await workflowClient.ScheduleNewWorkflowAsync(
                     nameof(ProcessDocumentsWorkflow),
-                    Guid.NewGuid().ToString("N"),
+                    instanceId,
                     request);
 
-                using var bufferedStream = new MemoryStream(byteBuffer);
-                using var documents = PdfReader.Open(bufferedStream, PdfDocumentOpenMode.Import);
-                for (int i = 0; i < documents.PageCount; i++)
-                {
-                    var documentName = BlobNameFromFilePage(fileName, i);
-                    var blobClient = container.GetBlobClient(documentName);
-                    if (await blobClient.ExistsAsync(cancellationToken))
-                    {
-                        continue;
-                    }
+                var state = await workflowClient.WaitForWorkflowCompletionAsync(
+                    instanceId,
+                    // TODO: Can we get *only* the output (and not input)?
+                    true,
+                    cancellationToken);
 
-                    var tempFileName = Path.GetTempFileName();
-
-                    try
-                    {
-                        using var document = new PdfDocument();
-                        document.AddPage(documents.Pages[i]);
-                        document.Save(tempFileName);
-
-                        await using var tempStream = File.OpenRead(tempFileName);
-                        await blobClient.UploadAsync(tempStream, new BlobHttpHeaders
-                        {
-                            ContentType = "application/pdf"
-                        }, cancellationToken: cancellationToken);
-
-                        uploadedFiles.Add(documentName);
-                    }
-                    finally
-                    {
-                        File.Delete(tempFileName);
-                    }
-                }
+                uploadedFiles.AddRange(state.ReadOutputAs<ProcessDocumentsResponse>()?.PageNames ?? Array.Empty<string>());
             }
 
             if (uploadedFiles.Count is 0)
